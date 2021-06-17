@@ -10,7 +10,7 @@ namespace FinalProject.Mapping
 			CreateMap<Story, StoryViewModel>().ReverseMap();
 			CreateMap<Comment, CommentViewModel>().ReverseMap();
 			CreateMap<Fragment, FragmentViewModel>().ReverseMap();
-			CreateMap<ApplicationUser, ApplicationUserViewModel>().ReverseMap();
+			CreateMap<ApplicationUser, AuthorViewModel>().ReverseMap();
 		}
 	}
 }

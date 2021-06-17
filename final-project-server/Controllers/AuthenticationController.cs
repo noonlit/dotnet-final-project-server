@@ -1,6 +1,8 @@
 ﻿using FinalProject.Services;
 using FinalProject.ViewModels.Authentication;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace FinalProject.Controllers
@@ -53,6 +55,20 @@ namespace FinalProject.Controllers
 			}
 
 			return Unauthorized();
+		}
+
+		[HttpGet("current")]
+		[Authorize(AuthenticationSchemes = "Identity.Application,Bearer")]
+		public async Task<ActionResult<AuthUserResponse>> GetCurrentUser()
+		{
+			var serviceResult = await _authenticationService.GetCurrentUser(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+
+			if (serviceResult.ResponseOk != null)
+			{
+				return serviceResult.ResponseOk;
+			}
+
+			return NotFound();
 		}
 	}
 }

@@ -4,14 +4,16 @@ using FinalProject.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace FinalProject.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20210617081054_LinkUserToComments")]
+    partial class LinkUserToComments
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -64,6 +66,9 @@ namespace FinalProject.Migrations
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int?>("StoryId")
+                        .HasColumnType("int");
+
                     b.Property<bool>("TwoFactorEnabled")
                         .HasColumnType("bit");
 
@@ -80,6 +85,8 @@ namespace FinalProject.Migrations
                         .IsUnique()
                         .HasDatabaseName("UserNameIndex")
                         .HasFilter("[NormalizedUserName] IS NOT NULL");
+
+                    b.HasIndex("StoryId");
 
                     b.ToTable("AspNetUsers");
                 });
@@ -158,16 +165,11 @@ namespace FinalProject.Migrations
                     b.Property<bool>("IsComplete")
                         .HasColumnType("bit");
 
-                    b.Property<string>("OwnerId")
-                        .HasColumnType("nvarchar(450)");
-
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("OwnerId");
 
                     b.ToTable("Stories");
                 });
@@ -410,6 +412,13 @@ namespace FinalProject.Migrations
                     b.ToTable("AspNetUserTokens");
                 });
 
+            modelBuilder.Entity("FinalProject.Models.ApplicationUser", b =>
+                {
+                    b.HasOne("FinalProject.Models.Story", null)
+                        .WithMany("Authors")
+                        .HasForeignKey("StoryId");
+                });
+
             modelBuilder.Entity("FinalProject.Models.Comment", b =>
                 {
                     b.HasOne("FinalProject.Models.Story", "Story")
@@ -442,15 +451,6 @@ namespace FinalProject.Migrations
                     b.Navigation("Story");
 
                     b.Navigation("User");
-                });
-
-            modelBuilder.Entity("FinalProject.Models.Story", b =>
-                {
-                    b.HasOne("FinalProject.Models.ApplicationUser", "Owner")
-                        .WithMany("Stories")
-                        .HasForeignKey("OwnerId");
-
-                    b.Navigation("Owner");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -509,12 +509,12 @@ namespace FinalProject.Migrations
                     b.Navigation("Comments");
 
                     b.Navigation("Fragments");
-
-                    b.Navigation("Stories");
                 });
 
             modelBuilder.Entity("FinalProject.Models.Story", b =>
                 {
+                    b.Navigation("Authors");
+
                     b.Navigation("Comments");
 
                     b.Navigation("Fragments");

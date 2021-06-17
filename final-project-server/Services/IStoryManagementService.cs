@@ -14,11 +14,14 @@ namespace FinalProject.Services
 		public Task<ServiceResponse<Story, IEnumerable<EntityManagementError>>> UpdateStory(Story story);
 		public Task<ServiceResponse<Comment, IEnumerable<EntityManagementError>>> UpdateComment(Comment comment);
 		public Task<ServiceResponse<Story, IEnumerable<EntityManagementError>>> CreateStory(Story story);
-		public Task<ServiceResponse<Comment, IEnumerable<EntityManagementError>>> CreateComment(Comment comment);
 		public Task<ServiceResponse<Comment, IEnumerable<EntityManagementError>>> AddCommentToStory(int storyId, Comment comment);
 		public Task<ServiceResponse<bool, IEnumerable<EntityManagementError>>> DeleteStory(int storyId);
 		public Task<ServiceResponse<bool, IEnumerable<EntityManagementError>>> DeleteComment(int commentId);
+		public Task<ServiceResponse<Fragment, IEnumerable<EntityManagementError>>> UpdateFragment(Fragment fragment);
+		public Task<ServiceResponse<Fragment, IEnumerable<EntityManagementError>>> AddFragmentToStory(int storyId, Fragment fragment);
+		public Task<ServiceResponse<bool, IEnumerable<EntityManagementError>>> DeleteFragment(int fragmentId);
 		public bool StoryExists(int id);
 		public bool CommentExists(int id);
+		public bool FragmentExists(int fragmentId);
 	}
 }

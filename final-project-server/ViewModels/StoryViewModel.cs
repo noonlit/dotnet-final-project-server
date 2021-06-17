@@ -18,7 +18,7 @@ namespace FinalProject.ViewModels
 
 		public GenreType Genre { get; set; }
 
-		public List<ApplicationUserViewModel> Authors { get; set; }
+		public AuthorViewModel Owner { get; set; }
 
 		public List<FragmentViewModel> Fragments { get; set; }
 

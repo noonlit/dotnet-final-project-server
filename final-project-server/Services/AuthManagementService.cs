@@ -100,5 +100,28 @@ namespace FinalProject.Services
 
 			return serviceResponse;
 		}
+
+		public async Task<ServiceResponse<AuthUserResponse, string>> GetCurrentUser(string value)
+		{
+			var user = await _userManager.FindByNameAsync(value);
+
+			var serviceResponse = new ServiceResponse<AuthUserResponse, string>();
+
+			if (user == null)
+			{
+				serviceResponse.ResponseError = "No such user.";
+			}
+
+			var viewModel = new AuthUserResponse
+			{
+				Id = user.Id,
+				Email = user.Email,
+				UserName = user.UserName
+			};
+
+			serviceResponse.ResponseOk = viewModel;
+
+			return serviceResponse;
+		}
 	}
 }

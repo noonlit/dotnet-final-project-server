@@ -20,7 +20,7 @@ namespace FinalProject.Models
 
 		public GenreType Genre { get; set; }
 
-		public List<ApplicationUser> Authors { get; set; }
+		public ApplicationUser Owner { get; set; }
 
 		public List<Fragment> Fragments { get; set; }
 

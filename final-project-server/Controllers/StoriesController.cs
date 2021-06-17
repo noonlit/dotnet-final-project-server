@@ -220,6 +220,35 @@ namespace FinalProject.Controllers
 			return StatusCode(500);
 		}
 
+		[Authorize(AuthenticationSchemes = "Identity.Application,Bearer")]
+		[HttpPut("{id}/Fragments/{fragmentId}")]
+		public async Task<IActionResult> PutFragment(int fragmentId, FragmentViewModel fragment)
+		{
+			if (fragmentId != fragment.Id)
+			{
+				return BadRequest();
+			}
+
+			if (!_storyService.StoryExists(fragment.StoryId))
+			{
+				return NotFound();
+			}
+
+			if (!_storyService.FragmentExists(fragmentId))
+			{
+				return NotFound();
+			}
+
+			var fragmentResponse = await _storyService.UpdateFragment(_mapper.Map<Fragment>(fragment));
+
+			if (fragmentResponse.ResponseError == null)
+			{
+				return NoContent();
+			}
+
+			return StatusCode(500);
+		}
+
 		// POST: api/Stories
 		/// <summary>
 		/// Creates a story.
@@ -274,7 +303,7 @@ namespace FinalProject.Controllers
 		[ProducesResponseType(StatusCodes.Status201Created)]
 		[ProducesResponseType(StatusCodes.Status400BadRequest)]
 		[HttpPost("{id}/Comments")]
-		public async Task<IActionResult> PostCommentForMovie(int id, CommentViewModel comment)
+		public async Task<IActionResult> PostCommentForStory(int id, CommentViewModel comment)
 		{
 			var commentResponse = await _storyService.AddCommentToStory(id, _mapper.Map<Comment>(comment));
 
@@ -285,6 +314,21 @@ namespace FinalProject.Controllers
 
 			return StatusCode(500);
 		}
+
+		[Authorize(AuthenticationSchemes = "Identity.Application,Bearer")]
+		[HttpPost("{id}/Fragments")]
+		public async Task<IActionResult> PostFragmentForStory(int id, FragmentViewModel fragment)
+		{
+			var commentResponse = await _storyService.AddFragmentToStory(id, _mapper.Map<Fragment>(fragment));
+
+			if (commentResponse.ResponseError == null)
+			{
+				return Ok();
+			}
+
+			return StatusCode(500);
+		}
+
 
 		// DELETE: api/Stories/5
 		/// <summary>
@@ -347,6 +391,26 @@ namespace FinalProject.Controllers
 			}
 
 			var result = await _storyService.DeleteComment(commentId);
+
+			if (result.ResponseError == null)
+			{
+				return NoContent();
+			}
+
+
+			return StatusCode(500);
+		}
+
+		[HttpDelete("{id}/Fragments/{fragmentId}")]
+		[Authorize(AuthenticationSchemes = "Identity.Application,Bearer")]
+		public async Task<IActionResult> DeleteFragment(int fragmentId)
+		{
+			if (!_storyService.FragmentExists(fragmentId))
+			{
+				return NotFound();
+			}
+
+			var result = await _storyService.DeleteFragment(fragmentId);
 
 			if (result.ResponseError == null)
 			{
