@@ -69,7 +69,7 @@ namespace FinalProject.Controllers
 		[ProducesResponseType(StatusCodes.Status200OK)]
 		[ProducesResponseType(StatusCodes.Status404NotFound)]
 		[HttpGet("{id}/Comments")]
-		public async Task<ActionResult<PaginatedResultSet<CommentViewModel>>> GetCommentsForStory(int id, int? page = 1, int? perPage = 20)
+		public async Task<ActionResult<PaginatedResultSet<CommentViewModel>>> GetCommentsForStory(int id, int? page = 1, int? perPage = 10)
 		{
 			if (!_storyService.StoryExists(id))
 			{
@@ -84,7 +84,7 @@ namespace FinalProject.Controllers
 				return NotFound();
 			}
 
-			var commentsResponse = await _storyService.GetCommentsForStory(id);
+			var commentsResponse = await _storyService.GetCommentsForStory(id, page, perPage);
 			return commentsResponse.ResponseOk;
 		}
 
@@ -426,7 +426,7 @@ namespace FinalProject.Controllers
 		[ProducesResponseType(StatusCodes.Status200OK)]
 		[ProducesResponseType(StatusCodes.Status404NotFound)]
 		[HttpGet("{id}/Fragments")]
-		public async Task<ActionResult<PaginatedResultSet<FragmentViewModel>>> GetFragmentsForStory(int id, int? page = 1, int? perPage = 20)
+		public async Task<ActionResult<PaginatedResultSet<FragmentViewModel>>> GetFragmentsForStory(int id, int? page = 1, int? perPage = 10)
 		{
 			if (!_storyService.StoryExists(id))
 			{
@@ -441,7 +441,7 @@ namespace FinalProject.Controllers
 				return NotFound();
 			}
 
-			var commentsResponse = await _storyService.GetFragmentsForStory(id);
+			var commentsResponse = await _storyService.GetFragmentsForStory(id, page, perPage);
 			return commentsResponse.ResponseOk;
 		}
 	}

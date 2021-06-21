@@ -93,7 +93,7 @@ namespace FinalProject.Services
 
 			var commentsVMs = _mapper.Map<List<Comment>, List<CommentViewModel>>(comments);
 
-			var count = _context.Stories.Count();
+			var count = _context.Comments.Where(c => c.StoryId == id).Count();
 
 			var result = new PaginatedResultSet<CommentViewModel>(commentsVMs, page.Value, count, perPage.Value);
 
@@ -105,7 +105,7 @@ namespace FinalProject.Services
 		public async Task<ServiceResponse<PaginatedResultSet<FragmentViewModel>, IEnumerable<EntityManagementError>>> GetFragmentsForStory(int id, int? page = 1, int? perPage = 10)
 		{
 			var fragments = await _context.Fragments
-				.Where(c => c.StoryId == id)
+				.Where(f => f.StoryId == id)
 				.Skip((page.Value - 1) * perPage.Value)
 				.Take(perPage.Value)
 				.Include(s => s.User)
@@ -113,7 +113,7 @@ namespace FinalProject.Services
 
 			var fragmentsVMs = _mapper.Map<List<Fragment>, List<FragmentViewModel>>(fragments);
 
-			var count = _context.Stories.Count();
+			var count = _context.Fragments.Where(f => f.StoryId == id).Count();
 
 			var result = new PaginatedResultSet<FragmentViewModel>(fragmentsVMs, page.Value, count, perPage.Value);
 
