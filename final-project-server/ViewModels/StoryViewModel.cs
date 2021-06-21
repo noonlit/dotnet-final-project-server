@@ -20,12 +20,8 @@ namespace FinalProject.ViewModels
 
 		public AuthorViewModel Owner { get; set; }
 
-		public List<FragmentViewModel> Fragments { get; set; }
-
 		public DateTime CreatedAt { get; set; }
 
 		public bool IsComplete { get; set; }
-
-		public List<CommentViewModel> Comments { get; set; }
 	}
 }

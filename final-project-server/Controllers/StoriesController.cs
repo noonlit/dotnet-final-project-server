@@ -35,12 +35,10 @@ namespace FinalProject.Controllers
 		/// <response code="200">The filtered stories.</response>
 		[HttpGet]
 		[Route("filter/{genre}")]
-		public async Task<ActionResult<IEnumerable<StoryViewModel>>> GetFilteredStories(string genre)
+		public async Task<ActionResult<PaginatedResultSet<StoryViewModel>>> GetFilteredStories(string genre, int? page = 1, int? perPage = 10)
 		{
-			var moviesResponse = await _storyService.GetFilteredStories(genre);
-			var movies = moviesResponse.ResponseOk;
-
-			return _mapper.Map<List<Story>, List<StoryViewModel>>(movies);
+			var result = await _storyService.GetFilteredStories(genre, page, perPage);
+			return result.ResponseOk;
 		}
 
 		/// <summary>
@@ -52,12 +50,10 @@ namespace FinalProject.Controllers
 		/// </remarks>
 		/// <response code="200">The stories.</response>
 		[HttpGet]
-		public async Task<ActionResult<IEnumerable<StoryViewModel>>> GetStories()
+		public async Task<ActionResult<PaginatedResultSet<StoryViewModel>>> GetStories(int? page = 1, int? perPage = 10)
 		{
-			var response = await _storyService.GetStories();
-			var stories = response.ResponseOk;
-
-			return _mapper.Map<List<Story>, List<StoryViewModel>>(stories);
+			var result = await _storyService.GetStories();
+			return result.ResponseOk;
 		}
 
 		/// <summary>
@@ -73,7 +69,7 @@ namespace FinalProject.Controllers
 		[ProducesResponseType(StatusCodes.Status200OK)]
 		[ProducesResponseType(StatusCodes.Status404NotFound)]
 		[HttpGet("{id}/Comments")]
-		public async Task<ActionResult<StoryViewModel>> GetCommentsForStory(int id)
+		public async Task<ActionResult<PaginatedResultSet<CommentViewModel>>> GetCommentsForStory(int id, int? page = 1, int? perPage = 20)
 		{
 			if (!_storyService.StoryExists(id))
 			{
@@ -89,12 +85,7 @@ namespace FinalProject.Controllers
 			}
 
 			var commentsResponse = await _storyService.GetCommentsForStory(id);
-			var comments = commentsResponse.ResponseOk;
-
-			var result = _mapper.Map<StoryViewModel>(story);
-			result.Comments = _mapper.Map<List<Comment>, List<CommentViewModel>>(comments);
-
-			return result;
+			return commentsResponse.ResponseOk;
 		}
 
 		/// <summary>
@@ -110,7 +101,7 @@ namespace FinalProject.Controllers
 		[ProducesResponseType(StatusCodes.Status200OK)]
 		[ProducesResponseType(StatusCodes.Status404NotFound)]
 		[HttpGet("{id}")]
-		public async Task<ActionResult<StoryViewModel>> GetStory(int id)
+		public async Task<ActionResult<PaginatedStoryViewModel>> GetStory(int id)
 		{
 			var response = await _storyService.GetStory(id);
 			var story = response.ResponseOk;
@@ -120,7 +111,7 @@ namespace FinalProject.Controllers
 				return NotFound();
 			}
 
-			return _mapper.Map<StoryViewModel>(story);
+			return story;
 		}
 
 		/// <summary>
@@ -419,6 +410,39 @@ namespace FinalProject.Controllers
 
 
 			return StatusCode(500);
+		}
+
+
+		/// <summary>
+		/// Retrieves a story's fragments by its ID.
+		/// </summary>
+		/// <remarks>
+		/// Sample request:
+		/// GET api/Stories/5/Fragments
+		/// </remarks>
+		/// <param name="id">The story ID</param>
+		/// <response code="200">The story.</response>
+		/// <response code="404">If the story is not found.</response>
+		[ProducesResponseType(StatusCodes.Status200OK)]
+		[ProducesResponseType(StatusCodes.Status404NotFound)]
+		[HttpGet("{id}/Fragments")]
+		public async Task<ActionResult<PaginatedResultSet<FragmentViewModel>>> GetFragmentsForStory(int id, int? page = 1, int? perPage = 20)
+		{
+			if (!_storyService.StoryExists(id))
+			{
+				return NotFound();
+			}
+
+			var response = await _storyService.GetStory(id);
+			var story = response.ResponseOk;
+
+			if (story == null)
+			{
+				return NotFound();
+			}
+
+			var commentsResponse = await _storyService.GetFragmentsForStory(id);
+			return commentsResponse.ResponseOk;
 		}
 	}
 }

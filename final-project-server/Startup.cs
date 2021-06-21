@@ -100,7 +100,6 @@ namespace FinalProject
 			services.AddTransient<IValidator<CommentViewModel>, CommentValidator>();
 			services.AddTransient<IAuthManagementService, AuthManagementService>();
 			services.AddTransient<IStoryManagementService, StoryManagementService>();
-			services.AddTransient<IFragmentManagementService, FragmentManagementService>();
 		}
 
 		// This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
