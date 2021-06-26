@@ -274,6 +274,20 @@ namespace FinalProject.Controllers
 			return StatusCode(500);
 		}
 
+		[HttpPost("{id}/Tags")]
+		[Authorize(AuthenticationSchemes = "Identity.Application,Bearer")]
+		public async Task<ActionResult<Story>> PostTag(TagViewModel tag)
+		{
+			var response = await _storyService.CreateTag(_mapper.Map<Tag>(tag));
+
+			if (response.ResponseError == null)
+			{
+				return CreatedAtAction("GetStory", new { id = tag.Id }, tag);
+			}
+
+			return StatusCode(500);
+		}
+
 		/// <summary>
 		/// Creates a story comment.
 		/// </summary>
@@ -320,6 +334,54 @@ namespace FinalProject.Controllers
 			return StatusCode(500);
 		}
 
+		[Authorize(AuthenticationSchemes = "Identity.Application,Bearer")]
+		[HttpPost("{id}/Tags")]
+		public async Task<IActionResult> PostTagForStory(int id, TagViewModel tag)
+		{
+			var commentResponse = await _storyService.AddTagToStory(id, _mapper.Map<Tag>(tag));
+
+			if (commentResponse.ResponseError == null)
+			{
+				return Ok();
+			}
+
+			return StatusCode(500);
+		}
+
+
+		[Authorize(AuthenticationSchemes = "Identity.Application,Bearer")]
+		[HttpDelete("{id}/Tags/{tagId}")]
+		public async Task<IActionResult> RemoveTagFromStory(int id, int tagId)
+		{
+			var commentResponse = await _storyService.RemoveTagFromStory(id, tagId);
+
+			if (commentResponse.ResponseError == null)
+			{
+				return Ok();
+			}
+
+			return StatusCode(500);
+		}
+
+		[HttpDelete("Tags/{tagId}")]
+		[Authorize(AuthenticationSchemes = "Identity.Application,Bearer")]
+		public async Task<IActionResult> DeleteTag(int tagId)
+		{
+			if (!_storyService.TagExists(tagId))
+			{
+				return NotFound();
+			}
+
+			var result = await _storyService.DeleteTag(tagId);
+
+			if (result.ResponseError == null)
+			{
+				return NoContent();
+			}
+
+
+			return StatusCode(500);
+		}
 
 		// DELETE: api/Stories/5
 		/// <summary>

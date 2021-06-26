@@ -188,6 +188,26 @@ namespace FinalProject.Services
 			return serviceResponse;
 		}
 
+		public async Task<ServiceResponse<bool, IEnumerable<EntityManagementError>>> CreateTag(Tag tag)
+		{
+			_context.Tags.Add(tag);
+			var serviceResponse = new ServiceResponse<bool, IEnumerable<EntityManagementError>>();
+
+			try
+			{
+				await _context.SaveChangesAsync();
+				serviceResponse.ResponseOk = true;
+			}
+			catch (Exception e)
+			{
+				var errors = new List<EntityManagementError>();
+				errors.Add(new EntityManagementError { Code = e.GetType().ToString(), Description = e.Message });
+				serviceResponse.ResponseError = errors;
+			}
+
+			return serviceResponse;
+		}
+
 		public async Task<ServiceResponse<bool, IEnumerable<EntityManagementError>>> AddCommentToStory(int storyId, Comment comment)
 		{
 			var story = await _context.Stories
@@ -264,6 +284,27 @@ namespace FinalProject.Services
 			return serviceResponse;
 		}
 
+		public async Task<ServiceResponse<bool, IEnumerable<EntityManagementError>>> DeleteTag(int tagId)
+		{
+			var serviceResponse = new ServiceResponse<bool, IEnumerable<EntityManagementError>>();
+
+			try
+			{
+				var tag = await _context.Tags.FindAsync(tagId);
+				_context.Tags.Remove(tag);
+				await _context.SaveChangesAsync();
+				serviceResponse.ResponseOk = true;
+			}
+			catch (Exception e)
+			{
+				var errors = new List<EntityManagementError>();
+				errors.Add(new EntityManagementError { Code = e.GetType().ToString(), Description = e.Message });
+				serviceResponse.ResponseError = errors;
+			}
+
+			return serviceResponse;
+		}
+
 		public async Task<ServiceResponse<bool, IEnumerable<EntityManagementError>>> UpdateFragment(Fragment fragment)
 		{
 			_context.Entry(fragment).State = EntityState.Modified;
@@ -326,6 +367,40 @@ namespace FinalProject.Services
 			return serviceResponse;
 		}
 
+		public async Task<ServiceResponse<bool, IEnumerable<EntityManagementError>>> AddTagToStory(int storyId, Tag tag)
+		{
+			var story = await _context.Stories
+				.Include(s => s.Tags)
+				.Where(s => s.Id == storyId)
+				.FirstOrDefaultAsync();
+
+			var serviceResponse = new ServiceResponse<bool, IEnumerable<EntityManagementError>>();
+
+			if (story == null)
+			{
+				var errors = new List<EntityManagementError>();
+				errors.Add(new EntityManagementError { Description = "The story doesn't exist." });
+				serviceResponse.ResponseError = errors;
+				return serviceResponse;
+			}
+
+			try
+			{
+				story.Tags.Add(tag);
+
+				_context.Entry(story).State = EntityState.Modified;
+				_context.SaveChanges();
+				serviceResponse.ResponseOk = true;
+			}
+			catch (Exception e)
+			{
+				var errors = new List<EntityManagementError>();
+				errors.Add(new EntityManagementError { Code = e.GetType().ToString(), Description = e.Message });
+			}
+
+			return serviceResponse;
+		}
+
 		public async Task<ServiceResponse<bool, IEnumerable<EntityManagementError>>> DeleteFragment(int fragmentId)
 		{
 			var serviceResponse = new ServiceResponse<bool, IEnumerable<EntityManagementError>>();
@@ -347,6 +422,41 @@ namespace FinalProject.Services
 			return serviceResponse;
 		}
 
+		public async Task<ServiceResponse<bool, IEnumerable<EntityManagementError>>> RemoveTagFromStory(int storyId, int tagId)
+		{
+			var story = await _context.Stories
+							.Include(s => s.Tags)
+							.Where(s => s.Id == storyId)
+							.FirstOrDefaultAsync();
+
+			var serviceResponse = new ServiceResponse<bool, IEnumerable<EntityManagementError>>();
+
+			if (story == null)
+			{
+				var errors = new List<EntityManagementError>();
+				errors.Add(new EntityManagementError { Description = "The story doesn't exist." });
+				serviceResponse.ResponseError = errors;
+				return serviceResponse;
+			}
+
+			try
+			{
+				var tag = await _context.Tags.FindAsync(tagId);
+				story.Tags.Remove(tag);
+
+				_context.Entry(story).State = EntityState.Modified;
+				_context.SaveChanges();
+				serviceResponse.ResponseOk = true;
+			}
+			catch (Exception e)
+			{
+				var errors = new List<EntityManagementError>();
+				errors.Add(new EntityManagementError { Code = e.GetType().ToString(), Description = e.Message });
+			}
+
+			return serviceResponse;
+		}
+
 		public bool StoryExists(int id)
 		{
 			return _context.Stories.Any(e => e.Id == id);
@@ -360,6 +470,11 @@ namespace FinalProject.Services
 		public bool FragmentExists(int fragmentId)
 		{
 			return _context.Fragments.Any(e => e.Id == fragmentId);
+		}
+
+		public bool TagExists(int tagId)
+		{
+			return _context.Tags.Any(e => e.Id == tagId);
 		}
 	}
 }
