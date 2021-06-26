@@ -88,6 +88,21 @@ namespace FinalProject.Controllers
 			return commentsResponse.ResponseOk;
 		}
 
+		[HttpGet("Tags")]
+		public async Task<ActionResult<List<TagViewModel>>> GetTags()
+		{
+
+			var response = await _storyService.GetTags();
+			var tags = response.ResponseOk;
+
+			if (tags == null)
+			{
+				return NotFound();
+			}
+
+			return tags;
+		}
+
 		/// <summary>
 		/// Retrieves a story by ID.
 		/// </summary>

@@ -457,6 +457,18 @@ namespace FinalProject.Services
 			return serviceResponse;
 		}
 
+		public async Task<ServiceResponse<List<TagViewModel>, IEnumerable<EntityManagementError>>> GetTags()
+		{
+			var tags = await _context.Tags
+				.ToListAsync();
+
+			var tagsVMs = _mapper.Map<List<Tag>, List<TagViewModel>>(tags);
+
+			var serviceResponse = new ServiceResponse<List<TagViewModel>, IEnumerable<EntityManagementError>>();
+			serviceResponse.ResponseOk = tagsVMs;
+			return serviceResponse;
+		}
+
 		public bool StoryExists(int id)
 		{
 			return _context.Stories.Any(e => e.Id == id);

@@ -12,6 +12,7 @@ namespace FinalProject.Services
 		public Task<ServiceResponse<PaginatedResultSet<StoryViewModel>, IEnumerable<EntityManagementError>>> GetFilteredStories(int tagId, int? page = 1, int? perPage = 10);
 		public Task<ServiceResponse<PaginatedStoryViewModel, IEnumerable<EntityManagementError>>> GetStory(int id);
 		public Task<ServiceResponse<PaginatedResultSet<CommentViewModel>, IEnumerable<EntityManagementError>>> GetCommentsForStory(int id, int? page = 1, int? perPage = 10);
+		public Task<ServiceResponse<List<TagViewModel>, IEnumerable<EntityManagementError>>> GetTags();
 		public Task<ServiceResponse<bool, IEnumerable<EntityManagementError>>> UpdateStory(Story story);
 		public Task<ServiceResponse<bool, IEnumerable<EntityManagementError>>> UpdateComment(Comment comment);
 		public Task<ServiceResponse<bool, IEnumerable<EntityManagementError>>> CreateStory(Story story);
