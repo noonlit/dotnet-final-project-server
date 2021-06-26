@@ -310,7 +310,7 @@ namespace FinalProject.Controllers
 		[HttpPost("{id}/Fragments")]
 		public async Task<IActionResult> PostFragmentForStory(int id, FragmentViewModel fragment)
 		{
-			var commentResponse = await _storyService.AddFragmentToStory(id, _mapper.Map<Fragment>(fragment));
+			var commentResponse = await _storyService.AddFragmentToStory(id, _mapper.Map<Fragment>(fragment), fragment.IsLast);
 
 			if (commentResponse.ResponseError == null)
 			{

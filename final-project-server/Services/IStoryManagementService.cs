@@ -19,7 +19,7 @@ namespace FinalProject.Services
 		public Task<ServiceResponse<bool, IEnumerable<EntityManagementError>>> DeleteStory(int storyId);
 		public Task<ServiceResponse<bool, IEnumerable<EntityManagementError>>> DeleteComment(int commentId);
 		public Task<ServiceResponse<bool, IEnumerable<EntityManagementError>>> UpdateFragment(Fragment fragment);
-		public Task<ServiceResponse<bool, IEnumerable<EntityManagementError>>> AddFragmentToStory(int storyId, Fragment fragment);
+		public Task<ServiceResponse<bool, IEnumerable<EntityManagementError>>> AddFragmentToStory(int storyId, Fragment fragment, bool isLast = false);
 		public Task<ServiceResponse<PaginatedResultSet<FragmentViewModel>, IEnumerable<EntityManagementError>>> GetFragmentsForStory(int id, int? page = 1, int? perPage = 10);
 		public Task<ServiceResponse<bool, IEnumerable<EntityManagementError>>> DeleteFragment(int fragmentId);
 		public bool StoryExists(int id);

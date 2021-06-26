@@ -279,7 +279,7 @@ namespace FinalProject.Services
 			return serviceResponse;
 		}
 
-		public async Task<ServiceResponse<bool, IEnumerable<EntityManagementError>>> AddFragmentToStory(int storyId, Fragment fragment)
+		public async Task<ServiceResponse<bool, IEnumerable<EntityManagementError>>> AddFragmentToStory(int storyId, Fragment fragment, bool isLast = false)
 		{
 			var story = await _context.Stories
 				.Include(s => s.Fragments)
@@ -301,6 +301,12 @@ namespace FinalProject.Services
 				var maxPosition = _context.Fragments.Max(f => f.Position);
 				fragment.Position = maxPosition + 1;
 				story.Fragments.Add(fragment);
+
+				if (isLast)
+				{
+					story.IsComplete = true;
+				}
+
 				_context.Entry(story).State = EntityState.Modified;
 				_context.SaveChanges();
 				serviceResponse.ResponseOk = true;
