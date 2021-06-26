@@ -289,7 +289,7 @@ namespace FinalProject.Controllers
 			return StatusCode(500);
 		}
 
-		[HttpPost("{id}/Tags")]
+		[HttpPost("Tags")]
 		[Authorize(AuthenticationSchemes = "Identity.Application,Bearer")]
 		public async Task<ActionResult<Story>> PostTag(TagViewModel tag)
 		{

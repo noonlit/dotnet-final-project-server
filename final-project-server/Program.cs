@@ -25,9 +25,9 @@ namespace FinalProject
 					var context = services.GetRequiredService<ApplicationDbContext>();
 					// context.Database.Migrate(); // apply all migrations
 
-					if (context.Stories.Count() < 1000)
+					if (context.ApplicationUsers.Count() < 100)
 					{
-						// seed
+						SeedUsers.Seed(context, services.GetRequiredService<UserManager<ApplicationUser>>(), 100);
 					}
 				}
 				catch (Exception ex)
