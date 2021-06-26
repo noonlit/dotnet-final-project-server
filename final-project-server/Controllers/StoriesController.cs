@@ -25,19 +25,19 @@ namespace FinalProject.Controllers
 		}
 
 		/// <summary>
-		/// Retrieves a list of stories, filtered by genre.
+		/// Retrieves a list of stories, filtered by a tag ID.
 		/// </summary>
 		/// <remarks>
 		/// Sample request:
 		/// GET /api/Stories/filter/Humour
 		/// </remarks>
-		/// <param name="genre"></param>
+		/// <param name="tagId"></param>
 		/// <response code="200">The filtered stories.</response>
 		[HttpGet]
-		[Route("filter/{genre}")]
-		public async Task<ActionResult<PaginatedResultSet<StoryViewModel>>> GetFilteredStories(string genre, int? page = 1, int? perPage = 10)
+		[Route("filter/{tagId}")]
+		public async Task<ActionResult<PaginatedResultSet<StoryViewModel>>> GetFilteredStories(int tagId, int? page = 1, int? perPage = 10)
 		{
-			var result = await _storyService.GetFilteredStories(genre, page, perPage);
+			var result = await _storyService.GetFilteredStories(tagId, page, perPage);
 			return result.ResponseOk;
 		}
 

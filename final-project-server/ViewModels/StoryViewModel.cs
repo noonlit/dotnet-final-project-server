@@ -23,5 +23,7 @@ namespace FinalProject.ViewModels
 		public DateTime CreatedAt { get; set; }
 
 		public bool IsComplete { get; set; }
+
+		public List<TagViewModel> Tags { get; set; }
 	}
 }

@@ -12,6 +12,7 @@ namespace FinalProject.Data
 		public DbSet<Comment> Comments { get; set; }
 		public DbSet<Fragment> Fragments { get; set; }
 
+		public DbSet<Tag> Tags { get; set; }
 		public DbSet<ApplicationUser> ApplicationUsers { get; set; }
 
 		public ApplicationDbContext(
@@ -30,6 +31,11 @@ namespace FinalProject.Data
 
 			modelBuilder.Entity<Comment>().Property(c => c.Text).IsRequired();
 			modelBuilder.Entity<Comment>().Property(c => c.StoryId).IsRequired();
+
+			modelBuilder.Entity<Fragment>().Property(f => f.Text).IsRequired();
+			modelBuilder.Entity<Fragment>().Property(f => f.StoryId).IsRequired();
+
+			modelBuilder.Entity<Tag>().Property(t => t.Name).IsRequired();
 		}
 	}
 }

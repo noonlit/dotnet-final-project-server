@@ -9,7 +9,7 @@ namespace FinalProject.Services
 	public interface IStoryManagementService
 	{
 		public Task<ServiceResponse<PaginatedResultSet<StoryViewModel>, IEnumerable<EntityManagementError>>> GetStories(int? page = 1, int? perPage = 10);
-		public Task<ServiceResponse<PaginatedResultSet<StoryViewModel>, IEnumerable<EntityManagementError>>> GetFilteredStories(string genre, int? page = 1, int? perPage = 10);
+		public Task<ServiceResponse<PaginatedResultSet<StoryViewModel>, IEnumerable<EntityManagementError>>> GetFilteredStories(int tagId, int? page = 1, int? perPage = 10);
 		public Task<ServiceResponse<PaginatedStoryViewModel, IEnumerable<EntityManagementError>>> GetStory(int id);
 		public Task<ServiceResponse<PaginatedResultSet<CommentViewModel>, IEnumerable<EntityManagementError>>> GetCommentsForStory(int id, int? page = 1, int? perPage = 10);
 		public Task<ServiceResponse<bool, IEnumerable<EntityManagementError>>> UpdateStory(Story story);

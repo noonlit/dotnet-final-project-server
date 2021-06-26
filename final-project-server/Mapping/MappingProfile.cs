@@ -11,6 +11,7 @@ namespace FinalProject.Mapping
 			CreateMap<Comment, CommentViewModel>().ReverseMap();
 			CreateMap<Fragment, FragmentViewModel>().ReverseMap();
 			CreateMap<ApplicationUser, AuthorViewModel>().ReverseMap();
+			CreateMap<Tag, TagViewModel>().ReverseMap();
 		}
 	}
 }

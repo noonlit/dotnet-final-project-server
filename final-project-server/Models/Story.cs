@@ -29,5 +29,7 @@ namespace FinalProject.Models
 		public bool IsComplete { get; set; }
 
 		public List<Comment> Comments { get; set; }
+
+		public List<Tag> Tags { get; set; }
 	}
 }

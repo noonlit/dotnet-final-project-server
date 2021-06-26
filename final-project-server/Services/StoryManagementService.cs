@@ -25,6 +25,7 @@ namespace FinalProject.Services
 		public async Task<ServiceResponse<PaginatedResultSet<StoryViewModel>, IEnumerable<EntityManagementError>>> GetStories(int? page = 1, int? perPage = 10)
 		{
 			var stories = await _context.Stories
+				.Include(s => s.Tags)
 				.Skip((page.Value - 1) * perPage.Value)
 				.Take(perPage.Value)
 				.OrderByDescending(s => s.CreatedAt)
@@ -41,10 +42,13 @@ namespace FinalProject.Services
 			return serviceResponse;
 		}
 
-		public async Task<ServiceResponse<PaginatedResultSet<StoryViewModel>, IEnumerable<EntityManagementError>>> GetFilteredStories(string genre, int? page = 1, int? perPage = 10)
+		public async Task<ServiceResponse<PaginatedResultSet<StoryViewModel>, IEnumerable<EntityManagementError>>> GetFilteredStories(int tagId, int? page = 1, int? perPage = 10)
 		{
+			var tag = await _context.Tags.FindAsync(tagId);
+
 			var stories = await _context.Stories
-				.Where(s => s.Genre.ToString() == genre)
+				.Include(s => s.Tags)
+				.Where(s => s.Tags.Contains(tag))
 				.Skip((page.Value - 1) * perPage.Value)
 				.Take(perPage.Value)
 				.OrderByDescending(s => s.CreatedAt)
@@ -52,7 +56,7 @@ namespace FinalProject.Services
 
 			var storiesVMs = _mapper.Map<List<Story>, List<StoryViewModel>>(stories);
 
-			var count = _context.Stories.Count();
+			var count = _context.Stories.Where(s => s.Tags.Contains(tag)).Count();
 
 			var result = new PaginatedResultSet<StoryViewModel>(storiesVMs, page.Value, count, perPage.Value);
 
@@ -89,6 +93,7 @@ namespace FinalProject.Services
 				.Skip((page.Value - 1) * perPage.Value)
 				.Take(perPage.Value)
 				.Include(s => s.User)
+				.OrderBy(c => c.Id)
 				.ToListAsync();
 
 			var commentsVMs = _mapper.Map<List<Comment>, List<CommentViewModel>>(comments);
@@ -109,6 +114,7 @@ namespace FinalProject.Services
 				.Skip((page.Value - 1) * perPage.Value)
 				.Take(perPage.Value)
 				.Include(s => s.User)
+				.OrderBy(c => c.Id)
 				.ToListAsync();
 
 			var fragmentsVMs = _mapper.Map<List<Fragment>, List<FragmentViewModel>>(fragments);
