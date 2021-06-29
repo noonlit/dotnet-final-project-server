@@ -279,11 +279,12 @@ namespace FinalProject.Controllers
 		[Authorize(AuthenticationSchemes = "Identity.Application,Bearer")]
 		public async Task<ActionResult<Story>> PostStory(StoryViewModel story)
 		{
-			var response = await _storyService.CreateStory(_mapper.Map<Story>(story));
-
-			if (response.ResponseError == null)
+			var storyEntity = _mapper.Map<Story>(story);
+			var storyResponse = await _storyService.CreateStory(storyEntity);
+			
+			if (storyResponse.ResponseError == null)
 			{
-				return CreatedAtAction("GetStory", new { id = story.Id }, story);
+				return CreatedAtAction("GetStory", new { id = storyEntity.Id }, story);
 			}
 
 			return StatusCode(500);

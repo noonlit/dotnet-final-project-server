@@ -69,6 +69,7 @@ namespace FinalProject.Services
 		{
 			var story = await _context.Stories
 				.Where(s => s.Id == id)
+				.Include(s => s.Tags)
 				.FirstOrDefaultAsync();
 
 			var fragmentsResponse = await GetFragmentsForStory(id);
@@ -168,15 +169,22 @@ namespace FinalProject.Services
 			return serviceResponse;
 		}
 
-		public async Task<ServiceResponse<bool, IEnumerable<EntityManagementError>>> CreateStory(Story story)
+		public async Task<ServiceResponse<StoryViewModel, IEnumerable<EntityManagementError>>> CreateStory(Story story)
 		{
+			var tempTags = story.Tags;
+			story.Tags = null;
+
 			_context.Stories.Add(story);
-			var serviceResponse = new ServiceResponse<bool, IEnumerable<EntityManagementError>>();
+			var serviceResponse = new ServiceResponse<StoryViewModel, IEnumerable<EntityManagementError>>();
 
 			try
 			{
 				await _context.SaveChangesAsync();
-				serviceResponse.ResponseOk = true;
+				tempTags.ForEach(
+					async t => await AddTagToStory(story.Id, new Tag { Id = t.Id, Name = t.Name })
+				);
+
+				serviceResponse.ResponseOk = _mapper.Map<StoryViewModel>(story);
 			}
 			catch (Exception e)
 			{
@@ -188,15 +196,15 @@ namespace FinalProject.Services
 			return serviceResponse;
 		}
 
-		public async Task<ServiceResponse<bool, IEnumerable<EntityManagementError>>> CreateTag(Tag tag)
+		public async Task<ServiceResponse<TagViewModel, IEnumerable<EntityManagementError>>> CreateTag(Tag tag)
 		{
 			_context.Tags.Add(tag);
-			var serviceResponse = new ServiceResponse<bool, IEnumerable<EntityManagementError>>();
+			var serviceResponse = new ServiceResponse<TagViewModel, IEnumerable<EntityManagementError>>();
 
 			try
 			{
 				await _context.SaveChangesAsync();
-				serviceResponse.ResponseOk = true;
+				serviceResponse.ResponseOk = _mapper.Map<TagViewModel>(tag);
 			}
 			catch (Exception e)
 			{
@@ -208,14 +216,14 @@ namespace FinalProject.Services
 			return serviceResponse;
 		}
 
-		public async Task<ServiceResponse<bool, IEnumerable<EntityManagementError>>> AddCommentToStory(int storyId, Comment comment)
+		public async Task<ServiceResponse<CommentViewModel, IEnumerable<EntityManagementError>>> AddCommentToStory(int storyId, Comment comment)
 		{
 			var story = await _context.Stories
 				.Where(s => s.Id == storyId)
 				.Include(s => s.Comments)
 				.FirstOrDefaultAsync();
 
-			var serviceResponse = new ServiceResponse<bool, IEnumerable<EntityManagementError>>();
+			var serviceResponse = new ServiceResponse<CommentViewModel, IEnumerable<EntityManagementError>>();
 
 			if (story == null)
 			{
@@ -230,7 +238,7 @@ namespace FinalProject.Services
 				story.Comments.Add(comment);
 				_context.Entry(story).State = EntityState.Modified;
 				_context.SaveChanges();
-				serviceResponse.ResponseOk = true;
+				serviceResponse.ResponseOk = _mapper.Map<CommentViewModel>(comment);
 			}
 			catch (Exception e)
 			{
@@ -326,14 +334,14 @@ namespace FinalProject.Services
 			return serviceResponse;
 		}
 
-		public async Task<ServiceResponse<bool, IEnumerable<EntityManagementError>>> AddFragmentToStory(int storyId, Fragment fragment, bool isLast = false)
+		public async Task<ServiceResponse<FragmentViewModel, IEnumerable<EntityManagementError>>> AddFragmentToStory(int storyId, Fragment fragment, bool isLast = false)
 		{
 			var story = await _context.Stories
 				.Include(s => s.Fragments)
 				.Where(s => s.Id == storyId)
 				.FirstOrDefaultAsync();
 
-			var serviceResponse = new ServiceResponse<bool, IEnumerable<EntityManagementError>>();
+			var serviceResponse = new ServiceResponse<FragmentViewModel, IEnumerable<EntityManagementError>>();
 
 			if (story == null)
 			{
@@ -356,7 +364,7 @@ namespace FinalProject.Services
 
 				_context.Entry(story).State = EntityState.Modified;
 				_context.SaveChanges();
-				serviceResponse.ResponseOk = true;
+				serviceResponse.ResponseOk = _mapper.Map<FragmentViewModel>(fragment);
 			}
 			catch (Exception e)
 			{
@@ -386,10 +394,11 @@ namespace FinalProject.Services
 
 			try
 			{
-				story.Tags.Add(tag);
-
-				_context.Entry(story).State = EntityState.Modified;
-				_context.SaveChanges();
+				if (!story.Tags.Contains(tag)) {
+					story.Tags.Add(tag);
+					_context.Entry(story).State = EntityState.Modified;
+					_context.SaveChanges();
+				}
 				serviceResponse.ResponseOk = true;
 			}
 			catch (Exception e)
@@ -454,6 +463,17 @@ namespace FinalProject.Services
 				errors.Add(new EntityManagementError { Code = e.GetType().ToString(), Description = e.Message });
 			}
 
+			return serviceResponse;
+		}
+
+		public async Task<ServiceResponse<TagViewModel, IEnumerable<EntityManagementError>>> GetTag(string name)
+		{
+			var tag = await _context.Tags.Where(t => t.Name == name).FirstOrDefaultAsync();
+
+			var tagVM = _mapper.Map<TagViewModel>(tag);
+
+			var serviceResponse = new ServiceResponse<TagViewModel, IEnumerable<EntityManagementError>>();
+			serviceResponse.ResponseOk = tagVM;
 			return serviceResponse;
 		}
 
