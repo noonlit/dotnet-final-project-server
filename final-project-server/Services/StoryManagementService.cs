@@ -70,6 +70,7 @@ namespace FinalProject.Services
 			var story = await _context.Stories
 				.Where(s => s.Id == id)
 				.Include(s => s.Tags)
+				.Include(s => s.Owner)
 				.FirstOrDefaultAsync();
 
 			var fragmentsResponse = await GetFragmentsForStory(id);
@@ -131,7 +132,45 @@ namespace FinalProject.Services
 
 		public async Task<ServiceResponse<bool, IEnumerable<EntityManagementError>>> UpdateStory(Story story)
 		{
-			_context.Entry(story).State = EntityState.Modified;
+			var loadedStory = await _context.Stories.Where(s => s.Id == story.Id)
+				.Include(s => s.Tags)
+				.FirstOrDefaultAsync();
+
+			loadedStory.Tags.RemoveAll(t => t.Id > 0);
+			story.Tags.ForEach(t => {
+				var tag = _context.Tags.Find(t.Id);
+				loadedStory.Tags.Add(tag);
+			});
+
+			var serviceResponse = new ServiceResponse<bool, IEnumerable<EntityManagementError>>();
+			_context.Entry(loadedStory).State = EntityState.Modified;
+
+			try
+			{
+				await _context.SaveChangesAsync();
+				serviceResponse.ResponseOk = true;
+			}
+			catch (DbUpdateConcurrencyException e)
+			{
+				var errors = new List<EntityManagementError>();
+				errors.Add(new EntityManagementError { Code = e.GetType().ToString(), Description = e.Message });
+				serviceResponse.ResponseError = errors;
+			}
+
+			return serviceResponse;
+		}
+
+		public async Task<ServiceResponse<bool, IEnumerable<EntityManagementError>>> UpdateStoryTags(Story story)
+		{
+			var loadedTags = await _context.Tags
+				.Include(s => s.Stories)
+				.Where(s => s.Stories.Contains(story))
+				.ToListAsync();
+
+			var deleteTags = loadedTags.Except(story.Tags).ToList();
+			deleteTags.ForEach(t => t.Stories.Remove(story));
+
+			await _context.SaveChangesAsync();
 			var serviceResponse = new ServiceResponse<bool, IEnumerable<EntityManagementError>>();
 
 			try
@@ -169,18 +208,39 @@ namespace FinalProject.Services
 			return serviceResponse;
 		}
 
+		public async Task<ServiceResponse<bool, IEnumerable<EntityManagementError>>> UpdateTag(Tag tag)
+		{
+			_context.Entry(tag).State = EntityState.Modified;
+			var serviceResponse = new ServiceResponse<bool, IEnumerable<EntityManagementError>>();
+
+			try
+			{
+				await _context.SaveChangesAsync();
+				serviceResponse.ResponseOk = true;
+			}
+			catch (DbUpdateConcurrencyException e)
+			{
+				var errors = new List<EntityManagementError>();
+				errors.Add(new EntityManagementError { Code = e.GetType().ToString(), Description = e.Message });
+				serviceResponse.ResponseError = errors;
+			}
+
+			return serviceResponse;
+		}
+
 		public async Task<ServiceResponse<StoryViewModel, IEnumerable<EntityManagementError>>> CreateStory(Story story)
 		{
-			var tempTags = story.Tags;
+			var tags = story.Tags;
 			story.Tags = null;
 
 			_context.Stories.Add(story);
+
 			var serviceResponse = new ServiceResponse<StoryViewModel, IEnumerable<EntityManagementError>>();
 
 			try
 			{
 				await _context.SaveChangesAsync();
-				tempTags.ForEach(
+				tags.ForEach(
 					async t => await AddTagToStory(story.Id, new Tag { Id = t.Id, Name = t.Name })
 				);
 
@@ -466,9 +526,20 @@ namespace FinalProject.Services
 			return serviceResponse;
 		}
 
-		public async Task<ServiceResponse<TagViewModel, IEnumerable<EntityManagementError>>> GetTag(string name)
+		public async Task<ServiceResponse<TagViewModel, IEnumerable<EntityManagementError>>> GetTagByName(string name)
 		{
 			var tag = await _context.Tags.Where(t => t.Name == name).FirstOrDefaultAsync();
+
+			var tagVM = _mapper.Map<TagViewModel>(tag);
+
+			var serviceResponse = new ServiceResponse<TagViewModel, IEnumerable<EntityManagementError>>();
+			serviceResponse.ResponseOk = tagVM;
+			return serviceResponse;
+		}
+
+		public async Task<ServiceResponse<TagViewModel, IEnumerable<EntityManagementError>>> GetTag(int id)
+		{
+			var tag = await _context.Tags.FindAsync(id);
 
 			var tagVM = _mapper.Map<TagViewModel>(tag);
 

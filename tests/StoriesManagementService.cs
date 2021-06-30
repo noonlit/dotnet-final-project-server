@@ -46,12 +46,12 @@ namespace tests
 		}
 
 		[Test]
-		public async Task TestGetMovies()
+		public async Task TestGetStories()
 		{
 			var service = new FinalProject.Services.StoryManagementService(_context, _mapper);
-			var moviesResponse = await service.GetStories();
-			var moviesCount = moviesResponse.ResponseOk.Entities.Count;
-			Assert.AreEqual(2, moviesCount);
+			var response = await service.GetStories();
+			var count = response.ResponseOk.Entities.Count;
+			Assert.AreEqual(2, count);
 		}
 	}
 }

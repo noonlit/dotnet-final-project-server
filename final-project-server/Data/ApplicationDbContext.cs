@@ -36,6 +36,13 @@ namespace FinalProject.Data
 			modelBuilder.Entity<Fragment>().Property(f => f.StoryId).IsRequired();
 
 			modelBuilder.Entity<Tag>().Property(t => t.Name).IsRequired();
+			modelBuilder.Entity<Tag>().HasIndex(t => t.Name).IsUnique();
+
+			modelBuilder
+				.Entity<Tag>()
+				.HasMany(t => t.Stories)
+				.WithMany(t => t.Tags)
+				.UsingEntity(j => j.ToTable("StoryTag"));
 		}
 	}
 }

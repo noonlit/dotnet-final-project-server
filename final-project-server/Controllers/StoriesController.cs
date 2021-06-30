@@ -103,6 +103,21 @@ namespace FinalProject.Controllers
 			return tags;
 		}
 
+		[HttpGet("Tags/{id}")]
+		public async Task<ActionResult<TagViewModel>> GetTag(int id)
+		{
+
+			var response = await _storyService.GetTag(id);
+			var tag = response.ResponseOk;
+
+			if (tag == null)
+			{
+				return NotFound();
+			}
+
+			return tag;
+		}
+
 		/// <summary>
 		/// Retrieves a story by ID.
 		/// </summary>
@@ -226,6 +241,24 @@ namespace FinalProject.Controllers
 			return StatusCode(500);
 		}
 
+		[HttpPut("Tags/{tagId}")]
+		public async Task<IActionResult> PutTag(int tagId, TagViewModel tag)
+		{
+			if (tagId != tag.Id)
+			{
+				return BadRequest();
+			}
+
+			var commentResponse = await _storyService.UpdateTag(_mapper.Map<Tag>(tag));
+
+			if (commentResponse.ResponseError == null)
+			{
+				return NoContent();
+			}
+
+			return StatusCode(500);
+		}
+
 		[Authorize(AuthenticationSchemes = "Identity.Application,Bearer")]
 		[HttpPut("{id}/Fragments/{fragmentId}")]
 		public async Task<IActionResult> PutFragment(int fragmentId, FragmentViewModel fragment)
@@ -298,7 +331,7 @@ namespace FinalProject.Controllers
 
 			if (response.ResponseError == null)
 			{
-				return CreatedAtAction("GetStory", new { id = tag.Id }, tag);
+				return CreatedAtAction("GetTag", new { id = tag.Id }, tag);
 			}
 
 			return StatusCode(500);
