@@ -1,4 +1,5 @@
 ﻿using FinalProject.Models;
+using FinalProject.Models.Stats;
 using IdentityServer4.EntityFramework.Options;
 using Microsoft.AspNetCore.ApiAuthorization.IdentityServer;
 using Microsoft.EntityFrameworkCore;
@@ -14,6 +15,8 @@ namespace FinalProject.Data
 
 		public DbSet<Tag> Tags { get; set; }
 		public DbSet<ApplicationUser> ApplicationUsers { get; set; }
+
+		public DbSet<PopularTags> PopularTags { get; set; }
 
 		public ApplicationDbContext(
 			DbContextOptions options,
@@ -43,6 +46,8 @@ namespace FinalProject.Data
 				.HasMany(t => t.Stories)
 				.WithMany(t => t.Tags)
 				.UsingEntity(j => j.ToTable("StoryTag"));
+
+			modelBuilder.Entity<PopularTags>().HasNoKey().ToView("View_PopularTags");
 		}
 	}
 }

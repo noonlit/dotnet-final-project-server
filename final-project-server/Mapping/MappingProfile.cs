@@ -1,6 +1,9 @@
 ﻿using AutoMapper;
 using FinalProject.Models;
+using FinalProject.Models.Stats;
 using FinalProject.ViewModels;
+using FinalProject.ViewModels.Stats;
+
 namespace FinalProject.Mapping
 {
 	public class MappingProfile : Profile
@@ -12,6 +15,7 @@ namespace FinalProject.Mapping
 			CreateMap<Fragment, FragmentViewModel>().ReverseMap();
 			CreateMap<ApplicationUser, AuthorViewModel>().ReverseMap();
 			CreateMap<Tag, TagViewModel>().ReverseMap();
+			CreateMap<PopularTags, PopularTagsViewModel>().ReverseMap();
 		}
 	}
 }

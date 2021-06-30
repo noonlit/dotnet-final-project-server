@@ -101,6 +101,7 @@ namespace FinalProject
 			services.AddTransient<IValidator<TagViewModel>, TagValidator>();
 			services.AddTransient<IAuthManagementService, AuthManagementService>();
 			services.AddTransient<IStoryManagementService, StoryManagementService>();
+			services.AddTransient<IStatsService, StatsService>();
 		}
 
 		// This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

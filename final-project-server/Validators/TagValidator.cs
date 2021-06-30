@@ -21,7 +21,7 @@ namespace FinalProject.Validators
 
 		private bool BeUnique(string name)
 		{
-			return _context.Tags.Any(e => e.Name == name);
+			return !_context.Tags.Any(e => e.Name == name);
 		}
 	}
 }
