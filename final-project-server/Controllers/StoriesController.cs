@@ -29,12 +29,15 @@ namespace FinalProject.Controllers
 		/// </summary>
 		/// <remarks>
 		/// Sample request:
-		/// GET /api/Stories/filter/Humour
+		/// GET /api/Stories/filter/1
 		/// </remarks>
 		/// <param name="tagId"></param>
+		/// <param name="page"></param>
+		/// <param name="perPage"></param>
 		/// <response code="200">The filtered stories.</response>
 		[HttpGet]
 		[Route("filter/{tagId}")]
+		[ProducesResponseType(StatusCodes.Status200OK)]
 		public async Task<ActionResult<PaginatedResultSet<StoryViewModel>>> GetFilteredStories(int tagId, int? page = 1, int? perPage = 10)
 		{
 			var result = await _storyService.GetFilteredStories(tagId, page, perPage);
@@ -48,74 +51,15 @@ namespace FinalProject.Controllers
 		/// Sample request:
 		/// GET /api/Stories
 		/// </remarks>
+		/// <param name="page"></param>
+		/// <param name="perPage"></param>
 		/// <response code="200">The stories.</response>
 		[HttpGet]
+		[ProducesResponseType(StatusCodes.Status200OK)]
 		public async Task<ActionResult<PaginatedResultSet<StoryViewModel>>> GetStories(int? page = 1, int? perPage = 10)
 		{
 			var result = await _storyService.GetStories();
 			return result.ResponseOk;
-		}
-
-		/// <summary>
-		/// Retrieves a story's comments by its ID.
-		/// </summary>
-		/// <remarks>
-		/// Sample request:
-		/// GET api/Stories/5/Comments
-		/// </remarks>
-		/// <param name="id">The story ID</param>
-		/// <response code="200">The story.</response>
-		/// <response code="404">If the story is not found.</response>
-		[ProducesResponseType(StatusCodes.Status200OK)]
-		[ProducesResponseType(StatusCodes.Status404NotFound)]
-		[HttpGet("{id}/Comments")]
-		public async Task<ActionResult<PaginatedResultSet<CommentViewModel>>> GetCommentsForStory(int id, int? page = 1, int? perPage = 10)
-		{
-			if (!_storyService.StoryExists(id))
-			{
-				return NotFound();
-			}
-
-			var response = await _storyService.GetStory(id);
-			var story = response.ResponseOk;
-
-			if (story == null)
-			{
-				return NotFound();
-			}
-
-			var commentsResponse = await _storyService.GetCommentsForStory(id, page, perPage);
-			return commentsResponse.ResponseOk;
-		}
-
-		[HttpGet("Tags")]
-		public async Task<ActionResult<List<TagViewModel>>> GetTags()
-		{
-
-			var response = await _storyService.GetTags();
-			var tags = response.ResponseOk;
-
-			if (tags == null)
-			{
-				return NotFound();
-			}
-
-			return tags;
-		}
-
-		[HttpGet("Tags/{id}")]
-		public async Task<ActionResult<TagViewModel>> GetTag(int id)
-		{
-
-			var response = await _storyService.GetTag(id);
-			var tag = response.ResponseOk;
-
-			if (tag == null)
-			{
-				return NotFound();
-			}
-
-			return tag;
 		}
 
 		/// <summary>
@@ -152,7 +96,7 @@ namespace FinalProject.Controllers
 		///
 		/// PUT /api/Stories/5
 		/// {
-		///		"id": 5
+		///	   "id": 5
 		///    "title": "Title",
 		///    "description": "Description!",
 		///    "genre": "Humour",
@@ -163,10 +107,12 @@ namespace FinalProject.Controllers
 		/// <param name="story">The story body.</param>
 		/// <response code="204">If the item was successfully added.</response>
 		/// <response code="400">If the ID in the URL doesn't match the one in the body.</response>
-		/// <response code="404">If the item is not found.</response>
+		/// <response code="404">If the item is not found after it is added.</response>
+		/// <response code="500">If something goes wrong.</response>
 		[ProducesResponseType(StatusCodes.Status204NoContent)]
 		[ProducesResponseType(StatusCodes.Status400BadRequest)]
 		[ProducesResponseType(StatusCodes.Status404NotFound)]
+		[ProducesResponseType(StatusCodes.Status500InternalServerError)]
 		[HttpPut("{id}")]
 		[Authorize(AuthenticationSchemes = "Identity.Application,Bearer")]
 		public async Task<IActionResult> PutStory(int id, StoryViewModel story)
@@ -191,6 +137,111 @@ namespace FinalProject.Controllers
 			return StatusCode(500);
 		}
 
+		// POST: api/Stories
+		/// <summary>
+		/// Creates a story.
+		/// </summary>
+		/// <remarks>
+		/// Sample request:
+		///
+		/// POST /api/Stories
+		/// {
+		///    "title": "Title",
+		///    "description": "Description!",
+		///    "genre": "Humour"
+		/// }
+		///
+		/// </remarks>
+		/// <param name="story"></param>
+		/// <response code="201">Returns the newly created item</response>
+		/// <response code="500">If something goes wrong.</response>
+		[ProducesResponseType(StatusCodes.Status201Created)]
+		[ProducesResponseType(StatusCodes.Status400BadRequest)]
+		[ProducesResponseType(StatusCodes.Status500InternalServerError)]
+		[HttpPost]
+		[Authorize(AuthenticationSchemes = "Identity.Application,Bearer")]
+		public async Task<ActionResult<Story>> PostStory(StoryViewModel story)
+		{
+			var storyEntity = _mapper.Map<Story>(story);
+			var storyResponse = await _storyService.CreateStory(storyEntity);
+
+			if (storyResponse.ResponseError == null)
+			{
+				return CreatedAtAction("GetStory", new { id = storyEntity.Id }, story);
+			}
+
+			return StatusCode(500);
+		}
+
+		// DELETE: api/Stories/5
+		/// <summary>
+		/// Deletes a story.
+		/// </summary>
+		/// <remarks>
+		/// Sample request:
+		///
+		/// DELETE api/Stories/1
+		///
+		/// </remarks>
+		/// <param name="id"></param>
+		/// <response code="204">No content if successful.</response>
+		/// <response code="404">If the story doesn't exist.</response>  
+		/// <response code="500">If something goes wrong.</response> 
+		[ProducesResponseType(StatusCodes.Status204NoContent)]
+		[ProducesResponseType(StatusCodes.Status404NotFound)]
+		[ProducesResponseType(StatusCodes.Status500InternalServerError)]
+		[HttpDelete("{id}")]
+		[Authorize(AuthenticationSchemes = "Identity.Application,Bearer")]
+		public async Task<IActionResult> DeleteStory(int id)
+		{
+			if (!_storyService.StoryExists(id))
+			{
+				return NotFound();
+			}
+
+			var result = await _storyService.DeleteStory(id);
+
+			if (result.ResponseError == null)
+			{
+				return NoContent();
+			}
+
+
+			return StatusCode(500);
+		}
+
+		/// <summary>
+		/// Retrieves a story's comments by its ID.
+		/// </summary>
+		/// <remarks>
+		/// Sample request:
+		/// GET api/Stories/5/Comments
+		/// </remarks>
+		/// <param name="id">The story ID</param>
+		/// <response code="200">The story.</response>
+		/// <response code="404">If the story is not found.</response>
+		[ProducesResponseType(StatusCodes.Status200OK)]
+		[ProducesResponseType(StatusCodes.Status404NotFound)]
+		[HttpGet("{id}/Comments")]
+		public async Task<ActionResult<PaginatedResultSet<CommentViewModel>>> GetCommentsForStory(int id, int? page = 1, int? perPage = 10)
+		{
+			if (!_storyService.StoryExists(id))
+			{
+				return NotFound();
+			}
+
+			var response = await _storyService.GetStory(id);
+			var story = response.ResponseOk;
+
+			if (story == null)
+			{
+				return NotFound();
+			}
+
+			var commentsResponse = await _storyService.GetCommentsForStory(id, page, perPage);
+			return commentsResponse.ResponseOk;
+		}
+
 		/// <summary>
 		/// Updates a story comment.
 		/// </summary>
@@ -200,8 +251,7 @@ namespace FinalProject.Controllers
 		/// PUT: api/Stories/1/Comments/2
 		/// {
 		///    "text": "some comment",
-		///    "important": false,
-		///    "movieId": 3,
+		///    "storyId": 3,
 		/// }
 		///
 		/// </remarks>
@@ -210,10 +260,13 @@ namespace FinalProject.Controllers
 		/// <response code="204">If the item was successfully added.</response>
 		/// <response code="400">If the ID in the URL doesn't match the one in the body.</response>
 		/// <response code="404">If the item is not found.</response>
+		/// /// <response code="404">If something goes wrong.</response>
 		[ProducesResponseType(StatusCodes.Status204NoContent)]
 		[ProducesResponseType(StatusCodes.Status400BadRequest)]
 		[ProducesResponseType(StatusCodes.Status404NotFound)]
+		[ProducesResponseType(StatusCodes.Status500InternalServerError)]
 		[HttpPut("{id}/Comments/{commentId}")]
+		[Authorize(AuthenticationSchemes = "Identity.Application,Bearer")]
 		public async Task<IActionResult> PutComment(int commentId, CommentViewModel comment)
 		{
 			if (commentId != comment.Id)
@@ -241,7 +294,149 @@ namespace FinalProject.Controllers
 			return StatusCode(500);
 		}
 
+		/// <summary>
+		/// Creates a story comment.
+		/// </summary>
+		/// <remarks>
+		/// Sample request:
+		///
+		/// POST /api/Stories/3/Comments
+		/// {
+		///    "text": "some comment",
+		///    "storyId": 3,
+		/// }
+		///
+		/// </remarks>
+		/// <param name="id">The story ID</param>
+		/// <param name="comment">The comment body</param>
+		/// <response code="200">If the item was successfully added.</response>
+		/// <response code="404">If story is not found.</response>  
+		/// <response code="500">If something goes wrong.</response>  
+		[ProducesResponseType(StatusCodes.Status201Created)]
+		[ProducesResponseType(StatusCodes.Status400BadRequest)]
+		[ProducesResponseType(StatusCodes.Status500InternalServerError)]
+		[HttpPost("{id}/Comments")]
+		public async Task<IActionResult> PostCommentForStory(int id, CommentViewModel comment)
+		{
+			var commentResponse = await _storyService.AddCommentToStory(id, _mapper.Map<Comment>(comment));
+
+			if (commentResponse.ResponseError == null)
+			{
+				return Ok();
+			}
+
+			return StatusCode(500);
+		}
+
+		// DELETE: api/Stories/1/Comments/5
+		/// <summary>
+		/// Deletes a story comment.
+		/// </summary>
+		/// <remarks>
+		/// Sample request:
+		///
+		/// DELETE api/Stories/1/Comments/5
+		///
+		/// </remarks>
+		/// <param name="commentId"></param>
+		/// <response code="204">No content if successful.</response>
+		/// <response code="404">If the comment doesn't exist.</response>  
+		/// <response code="500">If something goes wrong.</response>  
+		[ProducesResponseType(StatusCodes.Status204NoContent)]
+		[ProducesResponseType(StatusCodes.Status404NotFound)]
+		[ProducesResponseType(StatusCodes.Status500InternalServerError)]
+		[HttpDelete("{id}/Comments/{commentId}")]
+		[Authorize(AuthenticationSchemes = "Identity.Application,Bearer")]
+		public async Task<IActionResult> DeleteComment(int commentId)
+		{
+			if (!_storyService.CommentExists(commentId))
+			{
+				return NotFound();
+			}
+
+			var result = await _storyService.DeleteComment(commentId);
+
+			if (result.ResponseError == null)
+			{
+				return NoContent();
+			}
+
+			return StatusCode(500);
+		}
+
+		/// <summary>
+		/// Retrieves a list of tags.
+		/// </summary>
+		/// <remarks>
+		/// Sample request:
+		/// GET /api/Stories/Tags
+		/// </remarks>
+		/// <response code="200">The tags.</response>
+		[HttpGet("Tags")]
+		[ProducesResponseType(StatusCodes.Status200OK)]
+		public async Task<ActionResult<List<TagViewModel>>> GetTags()
+		{
+			var response = await _storyService.GetTags();
+			var tags = response.ResponseOk;
+
+			if (tags == null)
+			{
+				return NotFound();
+			}
+
+			return tags;
+		}
+
+		/// <summary>
+		/// Retrieves a tag by ID.
+		/// </summary>
+		/// <remarks>
+		/// Sample request:
+		/// GET api/Stories/Tags/5
+		/// </remarks>
+		/// <param name="id">The tag ID</param>
+		/// <response code="200">The tag.</response>
+		/// <response code="404">If the tag is not found.</response>
+		[ProducesResponseType(StatusCodes.Status200OK)]
+		[ProducesResponseType(StatusCodes.Status404NotFound)]
+		[HttpGet("Tags/{id}")]
+		public async Task<ActionResult<TagViewModel>> GetTag(int id)
+		{
+			var response = await _storyService.GetTag(id);
+			var tag = response.ResponseOk;
+
+			if (tag == null)
+			{
+				return NotFound();
+			}
+
+			return tag;
+		}
+
+		/// <summary>
+		/// Updates a tag.
+		/// </summary>
+		/// <remarks>
+		/// Sample request:
+		///
+		/// PUT: api/Stories/Tags/2
+		/// {
+		///    "name": "some name"
+		/// }
+		///
+		/// </remarks>
+		/// <param name="tagId">The tag ID</param>
+		/// <param name="tag">The tag body</param>
+		/// <response code="204">If the item was successfully added.</response>
+		/// <response code="400">If the ID in the URL doesn't match the one in the body.</response>
+		/// <response code="404">If the item is not found.</response>
+		/// /// <response code="404">If something goes wrong.</response>
+		[ProducesResponseType(StatusCodes.Status204NoContent)]
+		[ProducesResponseType(StatusCodes.Status400BadRequest)]
+		[ProducesResponseType(StatusCodes.Status404NotFound)]
+		[ProducesResponseType(StatusCodes.Status500InternalServerError)]
 		[HttpPut("Tags/{tagId}")]
+		[Authorize(AuthenticationSchemes = "Identity.Application,Bearer")]
 		public async Task<IActionResult> PutTag(int tagId, TagViewModel tag)
 		{
 			if (tagId != tag.Id)
@@ -259,6 +454,189 @@ namespace FinalProject.Controllers
 			return StatusCode(500);
 		}
 
+		/// <summary>
+		/// Creates a tag.
+		/// </summary>
+		/// <remarks>
+		/// Sample request:
+		///
+		/// POST /api/Stories/Tags
+		/// {
+		///    "name": "tag",
+		/// }
+		///
+		/// </remarks>
+		/// <param name="tag">The tag.</param>
+		/// <response code="200">If the item was successfully added.</response>
+		/// <response code="500">If something goes wrong.</response>  
+		[HttpPost("Tags")]
+		[Authorize(AuthenticationSchemes = "Identity.Application,Bearer")]
+		[ProducesResponseType(StatusCodes.Status200OK)]
+		[ProducesResponseType(StatusCodes.Status500InternalServerError)]
+		public async Task<ActionResult<Story>> PostTag(TagViewModel tag)
+		{
+			var response = await _storyService.CreateTag(_mapper.Map<Tag>(tag));
+
+			if (response.ResponseError == null)
+			{
+				return CreatedAtAction("GetTag", new { id = tag.Id }, tag);
+			}
+
+			return StatusCode(500);
+		}
+
+		/// <summary>
+		/// Creates a tag for a particular story.
+		/// </summary>
+		/// <remarks>
+		/// Sample request:
+		///
+		/// POST /api/Stories/1/Tags
+		/// {
+		///    "name": "tag",
+		/// }
+		///
+		/// </remarks>
+		/// <param name="id">The story ID</param>
+		/// <param name="tag">The tag.</param>
+		/// <response code="200">If the item was successfully added.</response>
+		/// <response code="500">If something goes wrong.</response>  
+		[Authorize(AuthenticationSchemes = "Identity.Application,Bearer")]
+		[HttpPost("{id}/Tags")]
+		[ProducesResponseType(StatusCodes.Status200OK)]
+		[ProducesResponseType(StatusCodes.Status500InternalServerError)]
+		public async Task<IActionResult> PostTagForStory(int id, TagViewModel tag)
+		{
+			var commentResponse = await _storyService.AddTagToStory(id, _mapper.Map<Tag>(tag));
+
+			if (commentResponse.ResponseError == null)
+			{
+				return Ok();
+			}
+
+			return StatusCode(500);
+		}
+
+		/// <summary>
+		/// Removes a tag from a particular story.
+		/// </summary>
+		/// <remarks>
+		/// Sample request:
+		///
+		/// DELETE /api/Stories/1/Tags/2
+		///
+		/// </remarks>
+		/// <param name="id">The story ID</param>
+		/// <param name="tagId">The tagId.</param>
+		/// <response code="200">If the item was successfully added.</response>
+		/// <response code="500">If something goes wrong.</response> 
+		[Authorize(AuthenticationSchemes = "Identity.Application,Bearer")]
+		[HttpDelete("{id}/Tags/{tagId}")]
+		[ProducesResponseType(StatusCodes.Status200OK)]
+		[ProducesResponseType(StatusCodes.Status500InternalServerError)]
+		public async Task<IActionResult> RemoveTagFromStory(int id, int tagId)
+		{
+			var commentResponse = await _storyService.RemoveTagFromStory(id, tagId);
+
+			if (commentResponse.ResponseError == null)
+			{
+				return Ok();
+			}
+
+			return StatusCode(500);
+		}
+
+		/// <summary>
+		/// Deletes a tag from the system.
+		/// </summary>
+		/// <remarks>
+		/// Sample request:
+		///
+		/// DELETE /api/Stories/Tags/2
+		///
+		/// </remarks>
+		/// <param name="tagId">The tagId.</param>
+		/// <response code="204">No content if successful.</response>
+		/// <response code="404">If the tag doesn't exist.</response>  
+		/// <response code="500">If something goes wrong.</response>  
+		[ProducesResponseType(StatusCodes.Status204NoContent)]
+		[ProducesResponseType(StatusCodes.Status404NotFound)]
+		[ProducesResponseType(StatusCodes.Status500InternalServerError)]
+		[HttpDelete("Tags/{tagId}")]
+		[Authorize(AuthenticationSchemes = "Identity.Application,Bearer")]
+		public async Task<IActionResult> DeleteTag(int tagId)
+		{
+			if (!_storyService.TagExists(tagId))
+			{
+				return NotFound();
+			}
+
+			var result = await _storyService.DeleteTag(tagId);
+
+			if (result.ResponseError == null)
+			{
+				return NoContent();
+			}
+
+			return StatusCode(500);
+		}
+
+		/// <summary>
+		/// Retrieves a story's fragments by the story ID.
+		/// </summary>
+		/// <remarks>
+		/// Sample request:
+		/// GET api/Stories/5/Fragments
+		/// </remarks>
+		/// <param name="id">The story ID</param>
+		/// <param name="page"></param>
+		/// <param name="perPage"></param>
+		/// <response code="200">The story.</response>
+		/// <response code="404">If the story is not found.</response>
+		[ProducesResponseType(StatusCodes.Status200OK)]
+		[ProducesResponseType(StatusCodes.Status404NotFound)]
+		[HttpGet("{id}/Fragments")]
+		public async Task<ActionResult<PaginatedResultSet<FragmentViewModel>>> GetFragmentsForStory(int id, int? page = 1, int? perPage = 10)
+		{
+			if (!_storyService.StoryExists(id))
+			{
+				return NotFound();
+			}
+
+			var response = await _storyService.GetStory(id);
+			var story = response.ResponseOk;
+
+			if (story == null)
+			{
+				return NotFound();
+			}
+
+			var commentsResponse = await _storyService.GetFragmentsForStory(id, page, perPage);
+			return commentsResponse.ResponseOk;
+		}
+
+		/// <summary>
+		/// Updates a fragment.
+		/// </summary>
+		/// <remarks>
+		/// Sample request:
+		///
+		/// PUT /api/Stories/1/Fragments/2
+		/// {
+		///    "text": "some text"
+		/// }
+		///
+		/// </remarks>
+		/// <param name="fragmentId">The fragment ID</param>
+		/// <param name="fragment">The fragment.</param>
+		/// <response code="204">If the item was successfully added.</response>
+		/// <response code="400">If the ID in the URL doesn't match the one in the body.</response>
+		/// <response code="404">If the item is not found.</response>
+		/// /// <response code="404">If something goes wrong.</response>
+		[ProducesResponseType(StatusCodes.Status204NoContent)]
+		[ProducesResponseType(StatusCodes.Status400BadRequest)]
+		[ProducesResponseType(StatusCodes.Status404NotFound)]
+		[ProducesResponseType(StatusCodes.Status500InternalServerError)]
 		[Authorize(AuthenticationSchemes = "Identity.Application,Bearer")]
 		[HttpPut("{id}/Fragments/{fragmentId}")]
 		public async Task<IActionResult> PutFragment(int fragmentId, FragmentViewModel fragment)
@@ -288,87 +666,22 @@ namespace FinalProject.Controllers
 			return StatusCode(500);
 		}
 
-		// POST: api/Stories
 		/// <summary>
-		/// Creates a story.
+		/// Creates a fragment for a particular story.
 		/// </summary>
 		/// <remarks>
 		/// Sample request:
 		///
-		/// POST /api/Stories
+		/// POST /api/Stories/1/Fragments
 		/// {
-		///    "title": "Title",
-		///    "description": "Description!",
-		///    "genre": "Humour"
-		/// }
-		///
-		/// </remarks>
-		/// <param name="story"></param>
-		/// <response code="201">Returns the newly created item</response>
-		/// <response code="400">If the item is null or the rating is not a value between 1 and 10.</response>
-		[ProducesResponseType(StatusCodes.Status201Created)]
-		[ProducesResponseType(StatusCodes.Status400BadRequest)]
-		[HttpPost]
-		[Authorize(AuthenticationSchemes = "Identity.Application,Bearer")]
-		public async Task<ActionResult<Story>> PostStory(StoryViewModel story)
-		{
-			var storyEntity = _mapper.Map<Story>(story);
-			var storyResponse = await _storyService.CreateStory(storyEntity);
-			
-			if (storyResponse.ResponseError == null)
-			{
-				return CreatedAtAction("GetStory", new { id = storyEntity.Id }, story);
-			}
-
-			return StatusCode(500);
-		}
-
-		[HttpPost("Tags")]
-		[Authorize(AuthenticationSchemes = "Identity.Application,Bearer")]
-		public async Task<ActionResult<Story>> PostTag(TagViewModel tag)
-		{
-			var response = await _storyService.CreateTag(_mapper.Map<Tag>(tag));
-
-			if (response.ResponseError == null)
-			{
-				return CreatedAtAction("GetTag", new { id = tag.Id }, tag);
-			}
-
-			return StatusCode(500);
-		}
-
-		/// <summary>
-		/// Creates a story comment.
-		/// </summary>
-		/// <remarks>
-		/// Sample request:
-		///
-		/// POST /api/Stories/3/Comments
-		/// {
-		///    "text": "some comment",
-		///    "storyId": 3,
+		///    "text": "some text"
 		/// }
 		///
 		/// </remarks>
 		/// <param name="id">The story ID</param>
-		/// <param name="comment">The comment body</param>
+		/// <param name="fragment">The fragment.</param>
 		/// <response code="200">If the item was successfully added.</response>
-		/// <response code="404">If story is not found.</response>  
-		[ProducesResponseType(StatusCodes.Status201Created)]
-		[ProducesResponseType(StatusCodes.Status400BadRequest)]
-		[HttpPost("{id}/Comments")]
-		public async Task<IActionResult> PostCommentForStory(int id, CommentViewModel comment)
-		{
-			var commentResponse = await _storyService.AddCommentToStory(id, _mapper.Map<Comment>(comment));
-
-			if (commentResponse.ResponseError == null)
-			{
-				return Ok();
-			}
-
-			return StatusCode(500);
-		}
-
+		/// <response code="500">If something goes wrong.</response>  
 		[Authorize(AuthenticationSchemes = "Identity.Application,Bearer")]
 		[HttpPost("{id}/Fragments")]
 		public async Task<IActionResult> PostFragmentForStory(int id, FragmentViewModel fragment)
@@ -383,126 +696,22 @@ namespace FinalProject.Controllers
 			return StatusCode(500);
 		}
 
-		[Authorize(AuthenticationSchemes = "Identity.Application,Bearer")]
-		[HttpPost("{id}/Tags")]
-		public async Task<IActionResult> PostTagForStory(int id, TagViewModel tag)
-		{
-			var commentResponse = await _storyService.AddTagToStory(id, _mapper.Map<Tag>(tag));
-
-			if (commentResponse.ResponseError == null)
-			{
-				return Ok();
-			}
-
-			return StatusCode(500);
-		}
-
-
-		[Authorize(AuthenticationSchemes = "Identity.Application,Bearer")]
-		[HttpDelete("{id}/Tags/{tagId}")]
-		public async Task<IActionResult> RemoveTagFromStory(int id, int tagId)
-		{
-			var commentResponse = await _storyService.RemoveTagFromStory(id, tagId);
-
-			if (commentResponse.ResponseError == null)
-			{
-				return Ok();
-			}
-
-			return StatusCode(500);
-		}
-
-		[HttpDelete("Tags/{tagId}")]
-		[Authorize(AuthenticationSchemes = "Identity.Application,Bearer")]
-		public async Task<IActionResult> DeleteTag(int tagId)
-		{
-			if (!_storyService.TagExists(tagId))
-			{
-				return NotFound();
-			}
-
-			var result = await _storyService.DeleteTag(tagId);
-
-			if (result.ResponseError == null)
-			{
-				return NoContent();
-			}
-
-
-			return StatusCode(500);
-		}
-
-		// DELETE: api/Stories/5
 		/// <summary>
-		/// Deletes a story.
+		/// Deletes a fragment from a story.
 		/// </summary>
 		/// <remarks>
 		/// Sample request:
 		///
-		/// DELETE api/Stories/1
+		/// DELETE /api/Stories/1/Fragments/2
 		///
 		/// </remarks>
-		/// <param name="id"></param>
+		/// <param name="fragmentId">The fragment ID.</param>
 		/// <response code="204">No content if successful.</response>
-		/// <response code="404">If the story doesn't exist.</response>  
+		/// <response code="404">If the tag doesn't exist.</response>  
+		/// <response code="500">If something goes wrong.</response>  
 		[ProducesResponseType(StatusCodes.Status204NoContent)]
 		[ProducesResponseType(StatusCodes.Status404NotFound)]
-		[HttpDelete("{id}")]
-		[Authorize(AuthenticationSchemes = "Identity.Application,Bearer")]
-		public async Task<IActionResult> DeleteStory(int id)
-		{
-			if (!_storyService.StoryExists(id))
-			{
-				return NotFound();
-			}
-
-			var result = await _storyService.DeleteStory(id);
-
-			if (result.ResponseError == null)
-			{
-				return NoContent();
-			}
-
-
-			return StatusCode(500);
-		}
-
-
-		// DELETE: api/Stories/1/Comments/5
-		/// <summary>
-		/// Deletes a story comment.
-		/// </summary>
-		/// <remarks>
-		/// Sample request:
-		///
-		/// DELETE api/Stories/1/Comments/5
-		///
-		/// </remarks>
-		/// <param name="commentId"></param>
-		/// <response code="204">No content if successful.</response>
-		/// <response code="404">If the comment doesn't exist.</response>  
-		[ProducesResponseType(StatusCodes.Status204NoContent)]
-		[ProducesResponseType(StatusCodes.Status404NotFound)]
-		[HttpDelete("{id}/Comments/{commentId}")]
-		[Authorize(AuthenticationSchemes = "Identity.Application,Bearer")]
-		public async Task<IActionResult> DeleteComment(int commentId)
-		{
-			if (!_storyService.CommentExists(commentId))
-			{
-				return NotFound();
-			}
-
-			var result = await _storyService.DeleteComment(commentId);
-
-			if (result.ResponseError == null)
-			{
-				return NoContent();
-			}
-
-
-			return StatusCode(500);
-		}
-
+		[ProducesResponseType(StatusCodes.Status500InternalServerError)]
 		[HttpDelete("{id}/Fragments/{fragmentId}")]
 		[Authorize(AuthenticationSchemes = "Identity.Application,Bearer")]
 		public async Task<IActionResult> DeleteFragment(int fragmentId)
@@ -519,41 +728,8 @@ namespace FinalProject.Controllers
 				return NoContent();
 			}
 
-
 			return StatusCode(500);
 		}
 
-
-		/// <summary>
-		/// Retrieves a story's fragments by its ID.
-		/// </summary>
-		/// <remarks>
-		/// Sample request:
-		/// GET api/Stories/5/Fragments
-		/// </remarks>
-		/// <param name="id">The story ID</param>
-		/// <response code="200">The story.</response>
-		/// <response code="404">If the story is not found.</response>
-		[ProducesResponseType(StatusCodes.Status200OK)]
-		[ProducesResponseType(StatusCodes.Status404NotFound)]
-		[HttpGet("{id}/Fragments")]
-		public async Task<ActionResult<PaginatedResultSet<FragmentViewModel>>> GetFragmentsForStory(int id, int? page = 1, int? perPage = 10)
-		{
-			if (!_storyService.StoryExists(id))
-			{
-				return NotFound();
-			}
-
-			var response = await _storyService.GetStory(id);
-			var story = response.ResponseOk;
-
-			if (story == null)
-			{
-				return NotFound();
-			}
-
-			var commentsResponse = await _storyService.GetFragmentsForStory(id, page, perPage);
-			return commentsResponse.ResponseOk;
-		}
 	}
 }
