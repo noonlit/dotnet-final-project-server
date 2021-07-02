@@ -230,7 +230,7 @@ namespace FinalProject.Services
 
 		public async Task<ServiceResponse<StoryViewModel, IEnumerable<EntityManagementError>>> CreateStory(Story story)
 		{
-			var tags = story.Tags;
+			var tags = story.Tags is List<Tag> ? story.Tags : new List<Tag>();
 			story.Tags = null;
 
 			_context.Stories.Add(story);
@@ -413,8 +413,9 @@ namespace FinalProject.Services
 
 			try
 			{
-				var maxPosition = _context.Fragments.Max(f => f.Position);
-				fragment.Position = maxPosition + 1;
+				var storyFragments = await _context.Fragments.Where(f => f.StoryId == story.Id).ToListAsync();
+				var lastPosition = storyFragments.Count > 0 ? storyFragments.Max(s => s.Position) : 0;
+				fragment.Position = lastPosition + 1;
 				story.Fragments.Add(fragment);
 
 				if (isLast)
@@ -523,17 +524,6 @@ namespace FinalProject.Services
 				errors.Add(new EntityManagementError { Code = e.GetType().ToString(), Description = e.Message });
 			}
 
-			return serviceResponse;
-		}
-
-		public async Task<ServiceResponse<TagViewModel, IEnumerable<EntityManagementError>>> GetTagByName(string name)
-		{
-			var tag = await _context.Tags.Where(t => t.Name == name).FirstOrDefaultAsync();
-
-			var tagVM = _mapper.Map<TagViewModel>(tag);
-
-			var serviceResponse = new ServiceResponse<TagViewModel, IEnumerable<EntityManagementError>>();
-			serviceResponse.ResponseOk = tagVM;
 			return serviceResponse;
 		}
 

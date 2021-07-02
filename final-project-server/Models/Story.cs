@@ -26,7 +26,7 @@ namespace FinalProject.Models
 
 		public DateTime CreatedAt { get; set; }
 
-		public bool IsComplete { get; set; }
+		public bool IsComplete { get; set; } = false;
 
 		public List<Comment> Comments { get; set; }
 

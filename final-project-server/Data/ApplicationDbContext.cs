@@ -12,12 +12,9 @@ namespace FinalProject.Data
 		public DbSet<Story> Stories { get; set; }
 		public DbSet<Comment> Comments { get; set; }
 		public DbSet<Fragment> Fragments { get; set; }
-
 		public DbSet<Tag> Tags { get; set; }
 		public DbSet<ApplicationUser> ApplicationUsers { get; set; }
-
 		public DbSet<PopularTags> PopularTags { get; set; }
-
 		public ApplicationDbContext(
 			DbContextOptions options,
 			IOptions<OperationalStoreOptions> operationalStoreOptions) : base(options, operationalStoreOptions)

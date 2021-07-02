@@ -10,7 +10,6 @@ namespace FinalProject.Services
 		Task<ServiceResponse<RegisterResponse, IEnumerable<IdentityError>>> RegisterUser(RegisterRequest registerRequest);
 		Task<bool> ConfirmUserRequest(ConfirmUserRequest confirmUserRequest);
 		Task<ServiceResponse<LoginResponse, string>> LoginUser(LoginRequest loginRequest);
-
 		Task<ServiceResponse<AuthUserResponse, string>> GetCurrentUser(string value);
 	}
 }

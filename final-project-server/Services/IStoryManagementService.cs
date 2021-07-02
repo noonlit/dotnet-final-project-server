@@ -18,7 +18,6 @@ namespace FinalProject.Services
 		public Task<ServiceResponse<CommentViewModel, IEnumerable<EntityManagementError>>> AddCommentToStory(int storyId, Comment comment);
 		public Task<ServiceResponse<bool, IEnumerable<EntityManagementError>>> UpdateComment(Comment comment);
 		public Task<ServiceResponse<bool, IEnumerable<EntityManagementError>>> DeleteComment(int commentId);
-		public Task<ServiceResponse<TagViewModel, IEnumerable<EntityManagementError>>> GetTagByName(string name);
 		public Task<ServiceResponse<TagViewModel, IEnumerable<EntityManagementError>>> GetTag(int id);
 		public Task<ServiceResponse<List<TagViewModel>, IEnumerable<EntityManagementError>>> GetTags();
 		public Task<ServiceResponse<TagViewModel, IEnumerable<EntityManagementError>>> CreateTag(Tag tag);
