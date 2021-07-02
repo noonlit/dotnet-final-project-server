@@ -243,6 +243,32 @@ namespace FinalProject.Controllers
 		}
 
 		/// <summary>
+		/// Retrieves a comment by ID.
+		/// </summary>
+		/// <remarks>
+		/// Sample request:
+		/// GET api/Comments/5
+		/// </remarks>
+		/// <param name="id">The comment ID</param>
+		/// <response code="200">The comment.</response>
+		/// <response code="404">If the comment is not found.</response>
+		[ProducesResponseType(StatusCodes.Status200OK)]
+		[ProducesResponseType(StatusCodes.Status404NotFound)]
+		[HttpGet("Comments/{id}")]
+		public async Task<ActionResult<CommentViewModel>> GetComment(int id)
+		{
+			var response = await _storyService.GetComment(id);
+			var comment = response.ResponseOk;
+
+			if (comment == null)
+			{
+				return NotFound();
+			}
+
+			return comment;
+		}
+
+		/// <summary>
 		/// Updates a story comment.
 		/// </summary>
 		/// <remarks>
@@ -611,8 +637,32 @@ namespace FinalProject.Controllers
 				return NotFound();
 			}
 
-			var commentsResponse = await _storyService.GetFragmentsForStory(id, page, perPage);
-			return commentsResponse.ResponseOk;
+			var fResponse = await _storyService.GetFragmentsForStory(id, page, perPage);
+			return fResponse.ResponseOk;
+		}
+
+		/// <summary>
+		/// Retrieves a fragment by ID.
+		/// </summary>
+		/// <remarks>
+		/// Sample request:
+		/// GET api/Stories/Fragments/5
+		/// </remarks>
+		/// <param name="id">The fragment ID</param>
+		/// <response code="200">The fragment.</response>
+		/// <response code="404">If the fragment is not found.</response>
+		[ProducesResponseType(StatusCodes.Status200OK)]
+		[ProducesResponseType(StatusCodes.Status404NotFound)]
+		[HttpGet("Fragments/{id}")]
+		public async Task<ActionResult<FragmentViewModel>> GetFragment(int id)
+		{
+			if (!_storyService.FragmentExists(id))
+			{
+				return NotFound();
+			}
+
+			var fResponse = await _storyService.GetFragment(id);
+			return fResponse.ResponseOk;
 		}
 
 		/// <summary>

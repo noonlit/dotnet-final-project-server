@@ -116,7 +116,8 @@ namespace FinalProject.Services
 				.Skip((page.Value - 1) * perPage.Value)
 				.Take(perPage.Value)
 				.Include(s => s.User)
-				.OrderBy(c => c.Id)
+				.OrderBy(c => c.Position)
+				.ThenBy(c => c.Id)
 				.ToListAsync();
 
 			var fragmentsVMs = _mapper.Map<List<Fragment>, List<FragmentViewModel>>(fragments);
@@ -391,6 +392,28 @@ namespace FinalProject.Services
 				serviceResponse.ResponseError = errors;
 			}
 
+			return serviceResponse;
+		}
+
+		public async Task<ServiceResponse<CommentViewModel, IEnumerable<EntityManagementError>>> GetComment(int id)
+		{
+			var comment = await _context.Comments.FindAsync(id);
+
+			var commentVM = _mapper.Map<CommentViewModel>(comment);
+
+			var serviceResponse = new ServiceResponse<CommentViewModel, IEnumerable<EntityManagementError>>();
+			serviceResponse.ResponseOk = commentVM;
+			return serviceResponse;
+		}
+
+		public async Task<ServiceResponse<FragmentViewModel, IEnumerable<EntityManagementError>>> GetFragment(int id)
+		{
+			var fragment = await _context.Fragments.FindAsync(id);
+
+			var fragmentVM = _mapper.Map<FragmentViewModel>(fragment);
+
+			var serviceResponse = new ServiceResponse<FragmentViewModel, IEnumerable<EntityManagementError>>();
+			serviceResponse.ResponseOk = fragmentVM;
 			return serviceResponse;
 		}
 
