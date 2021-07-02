@@ -99,6 +99,7 @@ namespace FinalProject
 			services.AddTransient<IValidator<StoryViewModel>, StoryValidator>();
 			services.AddTransient<IValidator<CommentViewModel>, CommentValidator>();
 			services.AddTransient<IValidator<TagViewModel>, TagValidator>();
+			services.AddTransient<IValidator<FragmentViewModel>, FragmentValidator>();
 			services.AddTransient<IAuthManagementService, AuthManagementService>();
 			services.AddTransient<IStoryManagementService, StoryManagementService>();
 			services.AddTransient<IStatsService, StatsService>();

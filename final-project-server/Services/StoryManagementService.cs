@@ -143,6 +143,10 @@ namespace FinalProject.Services
 				loadedStory.Tags.Add(tag);
 			});
 
+			loadedStory.Genre = story.Genre;
+			loadedStory.Description = story.Description;
+			loadedStory.Title = story.Title;
+
 			var serviceResponse = new ServiceResponse<bool, IEnumerable<EntityManagementError>>();
 			_context.Entry(loadedStory).State = EntityState.Modified;
 

@@ -15,7 +15,7 @@ namespace FinalProject.Validators
 		public FragmentValidator(ApplicationDbContext context)
 		{
 			_context = context;
-			RuleFor(f => f.Text).MinimumLength(10);
+			RuleFor(f => f.Text).NotNull().MinimumLength(10).WithMessage("The fragment must contain some text.");
 			RuleFor(f => f.StoryId).NotNull();
 		}
 	}

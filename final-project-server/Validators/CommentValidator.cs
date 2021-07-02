@@ -11,7 +11,7 @@ namespace FinalProject.Validators
 		public CommentValidator(ApplicationDbContext context)
 		{
 			_context = context;
-			RuleFor(c => c.Text).MinimumLength(10);
+			RuleFor(c => c.Text).NotNull().MinimumLength(10).WithMessage("The comment must contain some text");
 			RuleFor(c => c.StoryId).NotNull();
 		}
 	}

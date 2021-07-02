@@ -4,8 +4,10 @@ using FinalProject.Services;
 using FinalProject.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace FinalProject.Controllers
@@ -17,11 +19,13 @@ namespace FinalProject.Controllers
 	{
 		private readonly IMapper _mapper;
 		private readonly IStoryManagementService _storyService;
+		private readonly UserManager<ApplicationUser> _userManager;
 
-		public StoriesController(IMapper mapper, IStoryManagementService storyService)
+		public StoriesController(IMapper mapper, IStoryManagementService storyService, UserManager<ApplicationUser> userManager)
 		{
 			_mapper = mapper;
 			_storyService = storyService;
+			_userManager = userManager;
 		}
 
 		/// <summary>
@@ -162,7 +166,11 @@ namespace FinalProject.Controllers
 		[Authorize(AuthenticationSchemes = "Identity.Application,Bearer")]
 		public async Task<ActionResult<Story>> PostStory(StoryViewModel story)
 		{
+			var user = await _userManager.FindByNameAsync(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+
 			var storyEntity = _mapper.Map<Story>(story);
+			storyEntity.Owner = user;
+
 			var storyResponse = await _storyService.CreateStory(storyEntity);
 
 			if (storyResponse.ResponseError == null)
@@ -736,7 +744,11 @@ namespace FinalProject.Controllers
 		[HttpPost("{id}/Fragments")]
 		public async Task<IActionResult> PostFragmentForStory(int id, FragmentViewModel fragment)
 		{
-			var commentResponse = await _storyService.AddFragmentToStory(id, _mapper.Map<Fragment>(fragment), fragment.IsLast);
+			var user = await _userManager.FindByNameAsync(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+			var fragmentEntity = _mapper.Map<Fragment>(fragment);
+			fragmentEntity.User = user;
+
+			var commentResponse = await _storyService.AddFragmentToStory(id, fragmentEntity, fragment.IsLast);
 
 			if (commentResponse.ResponseError == null)
 			{
